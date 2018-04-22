@@ -3,8 +3,9 @@
 <head>
 	<script src="http://code.jquery.com/jquery-latest.min.js"></script>
 	<title>stats</title>
+	<script src="/socket.io/socket.io.js"></script>
 	<style type="text/css">
-body
+	body
   {
     margin-top:62px;
     background:url("https://i.imgur.com/mc1SHbe.gif");
@@ -85,75 +86,80 @@ font: italic;
 
 
 
-
 			#playername{
 		
-		position: fixed;
-      top: 20px;
-      right: 600px;
-      width: 300px;
-      height: 40px;
-
-		 
-  background:transparent;
-  text-align:center;
-  font-size:30px;
- background-size: 1px 300%;
- -webkit-transition:0.5s;
-  transition:0.5s;
-  color:orange;
+		font-size:15pt;
+		border: 0;
+		margin-bottom: 0px;
+		height:35px;
+		text-align:center;
 	}
 	</style>
 </head>
 <body>
 	<h2><textarea id="playername" readonly ></textarea></h2>
-	<button id="backbutton" onclick="backbuttonfun()">BACK</button>
+	<button id="backbutton" onclick="backbuttonfun()">back</button>
 	<table id="table" style="width:100%">
 		<tr>
 			
-			
-			<th><strong>RATING</strong></th>
-			<th><strong>WINS</strong></th>
-			<th><strong>LOSES</strong></th>
-			<th><strong>DRAW</strong></th>
-			<th><strong>WIN STREAK</strong></th>
-			<th><strong>LOSING STREAK</strong></th>
-			<th><strong>DRAW STREAK</strong></th>
+			<td><strong>rating</strong></td>
+			<td><strong>wins</strong></td>
+			<td><strong>loses</strong></td>
+			<td><strong>draws</strong></td>
+			<td><strong>win streak</strong></td>
+			<td><strong>losing streak</strong></td>
+			<td><strong>draw streak</strong></td>
 		</tr>
 	</table>
 
 <script >
-	var username;
+	var y,username;
+	var realusername;
+	var name;
+	var socket = io.connect();
 	var $playername=$('#playername'); 
 	$(function(){
-		$.get('http://localhost:2001/username', {}, function(data){
-              username=data;
-              console.log(username);
-              $playername.val(username);
+		var str = window.location.search.replace(/^\?/, '');
+        name="";
+        realusername="";
+        var i;
+		for(i=0;str[i]&&str[i]!='&';i++)
+		{
+             name+=str[i];
+		}
+        y=str[i+1];
+        i=i+3;
+        for(;str[i];i++)
+        {
+             realusername+=str[i];
+        }
+        console.log(str+" "+name+" "+y+" "+realusername+" %) ");
+              
+              $playername.val(name);
               var i;
               $.get('http://localhost:2001/records', {}, function(data2){
-              for(i=0;i<data2.length;i++)
-              {
-              	if(data2[i]['username']==username)
-              	{
-                  break;
-              	}
-              }
-              console.log(i+" "+data2[i]);
+              
+              console.log(i+" "+data2[0]);
               var tb=document.getElementById('table');
-              tb.innerHTML+="<tr><td>"+data2[i]['rating']+"</td><td>"+data2[i]['no_of_wins']+"</td><td>"+data2[i]['no_of_loses']+"</td><td>"+data2[i]['no_of_draws']+"</td><td>"+data2[i]['max_winning_streak']+"</td><td>"+data2[i]['max_losing_streak']+"</td><td>"+data2[i]['max_drawing_streak']+"</td></tr>";
+              tb.innerHTML+="<tr><td>"+data2[0]['rating']+"</td><td>"+data2[0]['no_of_wins']+"</td><td>"+data2[0]['no_of_loses']+"</td><td>"+data2[0]['no_of_draws']+"</td><td>"+data2[0]['max_winning_streak']+"</td><td>"+data2[0]['max_losing_streak']+"</td><td>"+data2[0]['max_drawing_streak']+"</td></tr>";
 
 
             });
             });
 		
-	});
+	
 	function backbuttonfun()
 	{
-	  location.href="/index";
+		if(y==1)
+	  location.href="http://localhost:2001/index?"+name+"";
+	     if(y==2)
+	  location.href="http://localhost:2001/admin?"+realusername+"";
+	     if(y==3)
+	     {
+	     	 socket.emit('view friendlist',{user:realusername});
+	   location.href="http://localhost:2001/friendlist?"+realusername+"";
+	     }     	
 	}
 </script>
 </body>
 </html>
-
-
